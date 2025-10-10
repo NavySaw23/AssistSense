@@ -1,10 +1,12 @@
 import sys
+
 from PyQt6.QtWidgets import QApplication
-from app.gui import MainMenuWindow 
+
+from app.gui import MainMenuWindow
 
 if __name__ == '__main__':
 
-    APP_SCALEFACTOR = 0.8
+    APP_SCALEFACTOR = 0.5
     DEBUG_MODE = True
     DEBUG_MODE = False
     
