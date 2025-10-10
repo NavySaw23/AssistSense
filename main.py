@@ -1,14 +1,16 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-from app.gui import MainMenuWindow # Import from your other file
+from app.gui import MainMenuWindow 
 
 if __name__ == '__main__':
 
-    APP_SCALEFACTOR = 0.5
+    APP_SCALEFACTOR = 0.8
     DEBUG_MODE = True
-    # DEBUG_MODE = False
+    DEBUG_MODE = False
     
     app = QApplication(sys.argv)
+    app.setStyle('Fusion')
+    
     window = MainMenuWindow(scalefactor=APP_SCALEFACTOR, DebugMode=DEBUG_MODE)
     window.show()
     
