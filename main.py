@@ -6,7 +6,7 @@ from app.gui import MainMenuWindow
 
 if __name__ == '__main__':
 
-    APP_SCALEFACTOR = 0.5
+    APP_SCALEFACTOR = 0.6
     DEBUG_MODE = True
     DEBUG_MODE = False
     

@@ -2,11 +2,11 @@ import webbrowser
 from pathlib import Path
 
 from PyQt6.QtCore import QPoint, QRect, QRectF, QSize, Qt, QTimer
-from PyQt6.QtGui import QKeyEvent, QMouseEvent, QPainter, QPixmap
+from PyQt6.QtGui import QColor, QKeyEvent, QMouseEvent, QPainter, QPixmap
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import QGraphicsDropShadowEffect, QLabel, QWidget
 
-from .controller import controller  # <-- import the singleton controller
+from .controller import controller 
 
 
 class MainMenuWindow(QWidget):
@@ -17,6 +17,7 @@ class MainMenuWindow(QWidget):
         self.original_width = 1080 * self.scalefactor
         self.original_height = 813 * self.scalefactor
         self._drag_pos = QPoint()
+        self.tab_toggled = False
 
         # Window setup
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
@@ -26,16 +27,33 @@ class MainMenuWindow(QWidget):
         # Initialize components
         self._init_bg()
         self._init_footer()
+        self._init_tab()
+
         self._init_vinyl()
+        self._init_reader()
+        self._init_TextBox()
+
+        self._init_Button_Min()
+        self._init_Button_Cross()
+        self._init_Button_Plain()
+
+        self._init_voice_text_display()
+
 
         if self.DebugMode:
             self.background_label.setStyleSheet("border: 1px solid red;")
             self.footer_label.setStyleSheet("border: 1px solid red;")
             self.vinyl_label.setStyleSheet("border: 1px solid red;")
 
-        # Initialize vinyl rotation & voice recognition display
-        self._init_vinyl_rotation()
-        self._init_voice_text_display()
+        # Vinyl rotation setup
+        self.vinyl_rotation_angle = 0
+        self.vinyl_rotation_timer = QTimer(self)
+        self.vinyl_rotation_timer.timeout.connect(self._rotate_vinyl)
+
+        self.listening_check_timer = QTimer(self)
+        self.listening_check_timer.timeout.connect(self._check_listening_status)
+        self.listening_check_timer.start(200)
+
 
     # ---------------- INIT ELEMENTS ----------------
 
@@ -70,62 +88,217 @@ class MainMenuWindow(QWidget):
         self.Logo_label.setCursor(Qt.CursorShape.PointingHandCursor)
         self.Logo_label.mousePressEvent = self.open_link
 
+    def _init_tab(self):
+        self.tab_label = QLabel(self)
+        tab_width = 190 * self.scalefactor
+        tab_height = 158 * self.scalefactor
+        self.original_tab_x = 817 * self.scalefactor
+        tab_y = 272 * self.scalefactor
+        self.tab_label.setGeometry(int(self.original_tab_x), int(tab_y), int(tab_width), int(tab_height))
+        self.tab_label.lower()
+
+        svg_file_tab = Path(__file__).parent / ".." / "assets" / "svg" / "MainMenuTab.svg" 
+        
+        self.load_svg(str(svg_file_tab), self.tab_label, QSize(int(tab_width), int(tab_height)))
+        self.tab_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.tab_label.mousePressEvent = self.toggle_tab
+
     def _init_vinyl(self):
-        # Main vinyl
         self.vinyl_label = QLabel(self)
         vinyl_size = int(275 * self.scalefactor)
-        vinyl_x = self.original_width - vinyl_size
-        vinyl_y = self.original_height - vinyl_size
+        vinyl_x = 804 * self.scalefactor
+        vinyl_y = 500 * self.scalefactor
         self.vinyl_label.setGeometry(int(vinyl_x), int(vinyl_y), int(vinyl_size), int(vinyl_size))
-        svg_file_vinyl = Path(__file__).parent / ".." / "assets" / "svg" / "Vinyl.svg"
-        self.load_svg(str(svg_file_vinyl), self.vinyl_label, QSize(vinyl_size, vinyl_size))
+        self.svg_file_vinyl = Path(__file__).parent / ".." / "assets" / "svg" / "Vinyl.svg"
+        self.load_svg(str(self.svg_file_vinyl), self.vinyl_label, QSize(vinyl_size, vinyl_size))
 
-        # Vinyl charge overlay
-        self.vinylcharge_label = QLabel(self)
-        self.vinylcharge_label.setGeometry(int(vinyl_x), int(vinyl_y), int(vinyl_size), int(vinyl_size))
-        svg_file_vinylcharge = Path(__file__).parent / ".." / "assets" / "svg" / "VinylCharge.svg"
-        self.load_svg(str(svg_file_vinylcharge), self.vinylcharge_label, QSize(vinyl_size, vinyl_size))
-        self.vinylcharge_label.raise_()
+    def _init_reader(self):
+            self.reader_label = QLabel(self)
+            reader_size = int(160 * self.scalefactor)
+            reader_x = int(790 * self.scalefactor)
+            reader_y = int(380 * self.scalefactor)
+            self.reader_label.raise_()
+            self.reader_label.setGeometry(reader_x, reader_y, reader_size, reader_size)
+            self.svg_file_reader = Path(__file__).parent / ".." / "assets" / "svg" / "Reader.svg"
+            self.load_svg(str(self.svg_file_reader), self.reader_label, QSize(reader_size, reader_size))
 
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
-        shadow.setXOffset(-2)
-        shadow.setYOffset(-2)
-        self.vinyl_label.setGraphicsEffect(shadow)
 
-    # ---------------- VINYL ROTATION ----------------
 
-    def _init_vinyl_rotation(self):
-        self.rotation_timer = QTimer(self)
-        self.rotation_timer.timeout.connect(self._update_vinyl_state)
-        self.rotation_timer.start(100)  # poll every 100ms
+    def _init_TextBox(self):
+        self.TextBox_label = QLabel(self)
+        TextBox_width = 354 * self.scalefactor
+        TextBox_height = 401 * self.scalefactor
+        TextBox_x = 526 * self.scalefactor
+        TextBox_y = 348 * self.scalefactor
+        self.TextBox_label.setGeometry(TextBox_x, TextBox_y, int(TextBox_width), int(TextBox_height))
+        svg_file_TextBox = Path(__file__).parent / ".." / "assets" / "svg" / "TextBox.svg"
+        self.load_svg(str(svg_file_TextBox), self.TextBox_label, QSize(TextBox_width, TextBox_height))
 
-    def _update_vinyl_state(self):
-        if controller.is_listening():
-            self._start_vinyl_rotation()
-        else:
-            self._stop_vinyl_rotation()
 
-    def _start_vinyl_rotation(self):
-        # You can replace this with actual QPixmap rotation later
-        self.vinyl_label.setStyleSheet("border: 2px solid green;")
 
-    def _stop_vinyl_rotation(self):
-        self.vinyl_label.setStyleSheet("border: 1px solid red;")
+    # -------------- Buttons --------------
 
-    # ---------------- VOICE TEXT ----------------
+    def _init_Button_Min(self):
+        self.Button_Min_label = QLabel(self)
+        Button_Min_width = 94 * self.scalefactor
+        Button_Min_height = 50 * self.scalefactor
+        Button_Min_x = 858 * self.scalefactor
+        Button_Min_y = 5 *  self.scalefactor
+        self.Button_Min_label.setGeometry(int(Button_Min_x), int(Button_Min_y), int(Button_Min_width), int(Button_Min_height))
+        svg_file_Button_Min = Path(__file__).parent / ".." / "assets" / "svg" / "Button_Min.svg"
+        self.load_svg(str(svg_file_Button_Min), self.Button_Min_label, QSize(Button_Min_width, Button_Min_height))
 
+        self.Button_Min_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.Button_Min_label.mousePressEvent = self.minimize_window
+        self.Button_Min_label.enterEvent = self.button_min_enter
+        self.Button_Min_label.leaveEvent = self.button_min_leave
+
+    def _init_Button_Cross(self):
+        self.Button_Cross_label = QLabel(self)
+        Button_Cross_width = 94 * self.scalefactor
+        Button_Cross_height = 50 * self.scalefactor
+        Button_Cross_x = 921 * self.scalefactor
+        Button_Cross_y = 5 *  self.scalefactor
+        self.Button_Cross_label.setGeometry(int(Button_Cross_x), int(Button_Cross_y), int(Button_Cross_width), int(Button_Cross_height))
+        svg_file_Button_Cross = Path(__file__).parent / ".." / "assets" / "svg" / "Button_Cross.svg"
+        self.load_svg(str(svg_file_Button_Cross), self.Button_Cross_label, QSize(Button_Cross_width, Button_Cross_height))
+
+        self.Button_Cross_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.Button_Cross_label.mousePressEvent = self.close_window
+        self.Button_Cross_label.enterEvent = self.button_cross_enter
+        self.Button_Cross_label.leaveEvent = self.button_cross_leave
+
+    def minimize_window(self, event):
+        self.showMinimized()
+        event.accept()
+
+    def close_window(self, event):
+        self.close()
+        event.accept()
+
+    def button_min_enter(self, event):
+        size = self.Button_Min_label.pixmap().size()
+        new_pixmap = QPixmap(size)
+        new_pixmap.fill(QColor("#A033B6"))
+        painter = QPainter(new_pixmap)
+        renderer = QSvgRenderer(str(Path(__file__).parent / ".." / "assets" / "svg" / "Button_Min.svg"))
+        renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
+        painter.end()
+        self.Button_Min_label.setPixmap(new_pixmap)
+
+    def button_min_leave(self, event):
+        svg_file_Button_Min = Path(__file__).parent / ".." / "assets" / "svg" / "Button_Min.svg"
+        self.load_svg(str(svg_file_Button_Min), self.Button_Min_label, self.Button_Min_label.pixmap().size())
+
+    def button_cross_enter(self, event):
+        size = self.Button_Cross_label.pixmap().size()
+        new_pixmap = QPixmap(size)
+        new_pixmap.fill(QColor("#A033B6"))
+        painter = QPainter(new_pixmap)
+        renderer = QSvgRenderer(str(Path(__file__).parent / ".." / "assets" / "svg" / "Button_Cross.svg"))
+        renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
+        painter.end()
+        self.Button_Cross_label.setPixmap(new_pixmap)
+
+    def button_cross_leave(self, event):
+        svg_file_Button_Cross = Path(__file__).parent / ".." / "assets" / "svg" / "Button_Cross.svg"
+        self.load_svg(str(svg_file_Button_Cross), self.Button_Cross_label, self.Button_Cross_label.pixmap().size())
+
+    def _init_Button_Plain(self):
+        Button_Plain_width = 94 * self.scalefactor
+        Button_Plain_height = 50 * self.scalefactor
+        svg_file_Button_Plain = Path(__file__).parent / ".." / "assets" / "svg" / "Button_Plain.svg"
+
+        # Button 1
+        self.Button_Plain_label_1 = QLabel(self)
+        Button_Plain_x_1 = 794 * self.scalefactor
+        Button_Plain_y_1 = 5 * self.scalefactor
+        self.Button_Plain_label_1.setGeometry(int(Button_Plain_x_1), int(Button_Plain_y_1), int(Button_Plain_width), int(Button_Plain_height))
+        self.load_svg(str(svg_file_Button_Plain), self.Button_Plain_label_1, QSize(int(Button_Plain_width), int(Button_Plain_height)))
+
+        # Button 2
+        self.Button_Plain_label_2 = QLabel(self)
+        Button_Plain_x_2 = 160 * self.scalefactor
+        Button_Plain_y_2 = 631 * self.scalefactor
+        self.Button_Plain_label_2.setGeometry(int(Button_Plain_x_2), int(Button_Plain_y_2), int(Button_Plain_width), int(Button_Plain_height))
+        self.load_svg(str(svg_file_Button_Plain), self.Button_Plain_label_2, QSize(int(Button_Plain_width), int(Button_Plain_height)))
+
+        # Button 3
+        self.Button_Plain_label_3 = QLabel(self)
+        Button_Plain_x_3 = 100 * self.scalefactor
+        Button_Plain_y_3 = 631 * self.scalefactor
+        self.Button_Plain_label_3.setGeometry(int(Button_Plain_x_3), int(Button_Plain_y_3), int(Button_Plain_width), int(Button_Plain_height))
+        self.load_svg(str(svg_file_Button_Plain), self.Button_Plain_label_3, QSize(int(Button_Plain_width), int(Button_Plain_height)))
+
+
+
+
+    # -------------- VOICE TO TEXT --------------
     def _init_voice_text_display(self):
         self.voice_text_label = QLabel(self)
-        self.voice_text_label.setGeometry(int((self.original_width/2)-20), int(self.original_height-110), 900, 42)
-        self.voice_text_label.setStyleSheet("font-size: 18px; color: black; background: transparent;")
+        self.voice_text_label.setGeometry(581*self.scalefactor, 412*self.scalefactor, 209*self.scalefactor, 296*self.scalefactor)
+        font_size = int(24 * self.scalefactor)
+        self.voice_text_label.setStyleSheet(f"font-family: montserrat; font-size: {font_size}px; color: black; background: transparent; font-weight: bold;")
+        self.voice_text_label.setWordWrap(True)
+        self.voice_text_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+
+        if self.DebugMode:
+            self.voice_text_label.setStyleSheet("border: 1px solid red; color: black; font-weight: bold; font-family: montserrat;")
+
         self.voice_timer = QTimer(self)
         self.voice_timer.timeout.connect(self._update_voice_text)
         self.voice_timer.start(200)
 
     def _update_voice_text(self):
+        if self.DebugMode:
+            self.voice_text_label.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt")
+            return
         text = controller.get_listened_text()
         self.voice_text_label.setText(text if text else "")
+
+    def _check_listening_status(self):
+        try:
+            is_listening = controller.is_listening()
+        except AttributeError:
+            is_listening = bool(controller.get_listened_text())
+
+        if is_listening:
+            if not self.vinyl_rotation_timer.isActive():
+                self.vinyl_rotation_timer.start(30)
+
+        else:
+            if self.vinyl_rotation_timer.isActive():
+                self.vinyl_rotation_timer.stop()
+                self._reset_vinyl_rotation()
+
+    def _rotate_vinyl(self):
+        self.vinyl_rotation_angle = (self.vinyl_rotation_angle + 2) % 360
+        self._update_vinyl_pixmap()
+
+    def _reset_vinyl_rotation(self):
+        self.vinyl_rotation_angle = 0
+        self._update_vinyl_pixmap()
+
+    def _update_vinyl_pixmap(self):
+        size = self.vinyl_label.size()
+        pixmap = QPixmap(size)
+        pixmap.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        painter.translate(size.width() / 2, size.height() / 2)
+        painter.rotate(self.vinyl_rotation_angle)
+        painter.translate(-size.width() / 2, -size.height() / 2)
+        
+        renderer = QSvgRenderer(str(self.svg_file_vinyl))
+        renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
+        painter.end()
+
+        self.vinyl_label.setPixmap(pixmap)
+
+
 
     # ---------------- HELPERS ----------------
 
@@ -165,3 +338,16 @@ class MainMenuWindow(QWidget):
 
     def open_link(self, event):
         webbrowser.open("https://github.com/NavySaw23/AssistSense")
+        event.accept()
+
+    def toggle_tab(self, event):
+        if not self.tab_toggled:
+            self.tab_label.move(int(self.original_tab_x - 20), self.tab_label.y())
+            self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
+            self.tab_toggled = True
+        else:
+            self.tab_label.move(int(self.original_tab_x), self.tab_label.y())
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowStaysOnTopHint)
+            self.tab_toggled = False
+        self.show()
+        event.accept()
