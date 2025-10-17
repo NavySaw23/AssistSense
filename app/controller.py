@@ -3,7 +3,7 @@ from voiceRecog import VoiceListener
 
 
 class Controller:
-    def __init__(self, wakeword="PC", silencetimeout=4):
+    def __init__(self, wakeword="hello", silencetimeout=4):
         self.listener = VoiceListener(wakeword, silencetimeout)
 
     def is_listening(self):

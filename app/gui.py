@@ -33,6 +33,9 @@ class MainMenuWindow(QWidget):
         self._init_reader()
         self._init_TextBox()
 
+        self._init_MacroPane()
+        self._init_InfoBox()
+
         self._init_Button_Min()
         self._init_Button_Cross()
         self._init_Button_Plain()
@@ -44,11 +47,17 @@ class MainMenuWindow(QWidget):
             self.background_label.setStyleSheet("border: 1px solid red;")
             self.footer_label.setStyleSheet("border: 1px solid red;")
             self.vinyl_label.setStyleSheet("border: 1px solid red;")
+            self.reader_label.setStyleSheet("border: 1px solid red;")
+            self.tab_label.setStyleSheet("border: 1px solid red;")
+
 
         # Vinyl rotation setup
         self.vinyl_rotation_angle = 0
         self.vinyl_rotation_timer = QTimer(self)
         self.vinyl_rotation_timer.timeout.connect(self._rotate_vinyl)
+
+        self.reader_rotation_angle = 0
+        self.is_listening_prev_state = -1
 
         self.listening_check_timer = QTimer(self)
         self.listening_check_timer.timeout.connect(self._check_listening_status)
@@ -121,6 +130,8 @@ class MainMenuWindow(QWidget):
             self.reader_label.setGeometry(reader_x, reader_y, reader_size, reader_size)
             self.svg_file_reader = Path(__file__).parent / ".." / "assets" / "svg" / "Reader.svg"
             self.load_svg(str(self.svg_file_reader), self.reader_label, QSize(reader_size, reader_size))
+            self.reader_rotation_angle = 0
+            self._update_reader_pixmap()
 
 
 
@@ -134,6 +145,25 @@ class MainMenuWindow(QWidget):
         svg_file_TextBox = Path(__file__).parent / ".." / "assets" / "svg" / "TextBox.svg"
         self.load_svg(str(svg_file_TextBox), self.TextBox_label, QSize(TextBox_width, TextBox_height))
 
+    def _init_MacroPane(self):
+            self.MacroPane_label = QLabel(self)
+            MacroPane_width = 389 * self.scalefactor
+            MacroPane_height = 541 * self.scalefactor
+            MacroPane_x = 99 * self.scalefactor
+            MacroPane_y = 57 * self.scalefactor
+            self.MacroPane_label.setGeometry(int(MacroPane_x), int(MacroPane_y), int(MacroPane_width), int(MacroPane_height))
+            svg_file_MacroPane = Path(__file__).parent / ".." / "assets" / "svg" / "MacroPane.svg"
+            self.load_svg(str(svg_file_MacroPane), self.MacroPane_label, QSize(int(MacroPane_width), int(MacroPane_height)))
+
+    def _init_InfoBox(self):
+            self.InfoBox_label = QLabel(self)
+            InfoBox_width = 460 * self.scalefactor
+            InfoBox_height = 222 * self.scalefactor
+            InfoBox_x = 524 * self.scalefactor
+            InfoBox_y = 85 * self.scalefactor
+            self.InfoBox_label.setGeometry(int(InfoBox_x), int(InfoBox_y), int(InfoBox_width), int(InfoBox_height))
+            svg_file_InfoBox = Path(__file__).parent / ".." / "assets" / "svg" / "InfoBox.svg"
+            self.load_svg(str(svg_file_InfoBox), self.InfoBox_label, QSize(int(InfoBox_width), int(InfoBox_height)))
 
 
     # -------------- Buttons --------------
@@ -236,15 +266,15 @@ class MainMenuWindow(QWidget):
     # -------------- VOICE TO TEXT --------------
     def _init_voice_text_display(self):
         self.voice_text_label = QLabel(self)
-        self.voice_text_label.setGeometry(581*self.scalefactor, 412*self.scalefactor, 209*self.scalefactor, 296*self.scalefactor)
+        self.voice_text_label.setGeometry(578*self.scalefactor, 440*self.scalefactor, 209*self.scalefactor, 296*self.scalefactor)
         font_size = int(24 * self.scalefactor)
-        self.voice_text_label.setStyleSheet(f"font-family: montserrat; font-size: {font_size}px; color: black; background: transparent; font-weight: bold;")
+        self.voice_text_label.setStyleSheet(f"font-family: montserrat; font-size: {font_size}px; color: #A033B6; background: transparent; font-weight: bold;")
         self.voice_text_label.setWordWrap(True)
         self.voice_text_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
 
         if self.DebugMode:
-            self.voice_text_label.setStyleSheet("border: 1px solid red; color: black; font-weight: bold; font-family: montserrat;")
+            self.voice_text_label.setStyleSheet("border: 1px solid red; color: #A033B6; font-weight: bold; font-family: montserrat;")
 
         self.voice_timer = QTimer(self)
         self.voice_timer.timeout.connect(self._update_voice_text)
@@ -259,18 +289,23 @@ class MainMenuWindow(QWidget):
 
     def _check_listening_status(self):
         try:
-            is_listening = controller.is_listening()
+            is_listening = int(controller.is_listening())
         except AttributeError:
-            is_listening = bool(controller.get_listened_text())
+            is_listening = int(bool(controller.get_listened_text()))
 
-        if is_listening:
-            if not self.vinyl_rotation_timer.isActive():
-                self.vinyl_rotation_timer.start(30)
+        if is_listening != self.is_listening_prev_state:
+            if is_listening:
+                if not self.vinyl_rotation_timer.isActive():
+                    self.vinyl_rotation_timer.start(30)
+                
 
-        else:
-            if self.vinyl_rotation_timer.isActive():
-                self.vinyl_rotation_timer.stop()
-                self._reset_vinyl_rotation()
+            else:
+                if self.vinyl_rotation_timer.isActive():
+                    self.vinyl_rotation_timer.stop()
+                    self._reset_vinyl_rotation()
+                
+            
+            self.is_listening_prev_state = is_listening
 
     def _rotate_vinyl(self):
         self.vinyl_rotation_angle = (self.vinyl_rotation_angle + 2) % 360
@@ -297,6 +332,24 @@ class MainMenuWindow(QWidget):
         painter.end()
 
         self.vinyl_label.setPixmap(pixmap)
+
+    def _update_reader_pixmap(self):
+        size = self.reader_label.size()
+        pixmap = QPixmap(size)
+        pixmap.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        painter.translate(size.width() / 2, size.height() / 2)
+        painter.rotate(self.reader_rotation_angle)
+        painter.translate(-size.width() / 2, -size.height() / 2)
+        
+        renderer = QSvgRenderer(str(self.svg_file_reader))
+        renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
+        painter.end()
+
+        self.reader_label.setPixmap(pixmap)
 
 
 
