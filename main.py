@@ -16,4 +16,4 @@ if __name__ == '__main__':
     window = MainMenuWindow(scalefactor=APP_SCALEFACTOR, DebugMode=DEBUG_MODE)
     window.show()
     
-    sys.exit(app.exec()) 
+    sys.exit(app.exec())

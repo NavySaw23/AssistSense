@@ -1,6 +1,47 @@
-<svg width="275" height="273" viewBox="0 0 275 273" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g opacity="0.25">
-<path d="M216.3 137.5C216.3 94.0001 181 58.7001 137.5 58.6001M193.2 193.3C178.9 207.6 159.2 216.4 137.5 216.4C110 216.4 85.8 202.3 71.7 181M58.8 133.9C59.8 112.9 68.9 94.0001 83.2 80.4001C95 69.2001 110.3 61.6001 127.2 59.3001" stroke="white" stroke-opacity="0.5" stroke-miterlimit="10"/>
-<path d="M146.27 200.392C180.944 195.556 205.151 163.441 200.386 128.69M99.2195 188.146C86.2283 178.315 77.0198 163.561 74.6031 146.231C71.5404 124.269 80.0844 103.375 95.4924 89.7464M131.599 74.2086C148.45 72.6729 164.528 77.8395 176.962 87.748C187.203 95.9267 194.965 107.301 198.681 120.542" stroke="white" stroke-opacity="0.5" stroke-miterlimit="10"/>
+<svg width="275" height="275" viewBox="0 0 275 275" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g opacity="0.29" clip-path="url(#clip0_129_172)">
+<foreignObject x="-39.7309" y="-36.5524" width="354.462" height="354.462"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(7.95px);clip-path:url(#bgblur_1_129_172_clip_path);height:100%;width:100%"></div></foreignObject><g filter="url(#filter0_dinf_129_172)" data-figma-bg-blur-radius="15.8924">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M137.5 0C213.439 0 275 61.5608 275 137.5C275 213.439 213.439 275 137.5 275C61.5608 275 0 213.439 0 137.5C7.44859e-05 61.5609 61.5609 7.45053e-05 137.5 0ZM136.923 102.837C118.097 102.837 102.836 118.097 102.836 136.923C102.836 155.748 118.098 171.009 136.923 171.009C155.748 171.008 171.008 155.748 171.009 136.923C171.009 118.098 155.748 102.837 136.923 102.837Z" fill="#232323" fill-opacity="0.85" shape-rendering="crispEdges"/>
+<path d="M274.985 139.395C274.975 140.172 274.957 140.947 274.934 141.721C274.65 150.94 273.441 160.111 271.32 169.095L170 145.173C170.612 142.71 170.957 140.142 171.001 137.5H275C275 138.132 274.994 138.763 274.985 139.395Z" fill="white" fill-opacity="0.85" shape-rendering="crispEdges"/>
+<path d="M103.646 129.507C103.117 131.894 102.836 134.376 102.836 136.923C102.836 137.116 102.84 137.308 102.843 137.5H0C1.38529e-06 136.088 0.0231456 134.68 0.0654297 133.278C0.34872 124.059 1.55871 114.889 3.67969 105.905L103.646 129.507Z" fill="white" fill-opacity="0.85" shape-rendering="crispEdges"/>
 </g>
+</g>
+<defs>
+<filter id="filter0_dinf_129_172" x="-39.7309" y="-36.5524" width="354.462" height="354.462" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="3.17847"/>
+<feGaussianBlur stdDeviation="19.8655"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_129_172"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="2.38386"/>
+<feGaussianBlur stdDeviation="3.97309"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.15 0"/>
+<feBlend mode="normal" in2="shape" result="effect2_innerShadow_129_172"/>
+<feTurbulence type="fractalNoise" baseFrequency="2.5169312953948975 2.5169312953948975" stitchTiles="stitch" numOctaves="3" result="noise" seed="8798" />
+<feColorMatrix in="noise" type="luminanceToAlpha" result="alphaNoise" />
+<feComponentTransfer in="alphaNoise" result="coloredNoise1">
+<feFuncA type="discrete" tableValues="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "/>
+</feComponentTransfer>
+<feComposite operator="in" in2="effect2_innerShadow_129_172" in="coloredNoise1" result="noise1Clipped" />
+<feFlood flood-color="rgba(255, 255, 255, 0.1)" result="color1Flood" />
+<feComposite operator="in" in2="noise1Clipped" in="color1Flood" result="color1" />
+<feMerge result="effect3_noise_129_172">
+<feMergeNode in="effect2_innerShadow_129_172" />
+<feMergeNode in="color1" />
+</feMerge>
+<feBlend mode="normal" in="effect3_noise_129_172" in2="effect1_dropShadow_129_172" result="effect3_noise_129_172"/>
+<feGaussianBlur stdDeviation="4.4" result="effect4_foregroundBlur_129_172"/>
+</filter>
+<clipPath id="bgblur_1_129_172_clip_path" transform="translate(39.7309 36.5524)"><path fill-rule="evenodd" clip-rule="evenodd" d="M137.5 0C213.439 0 275 61.5608 275 137.5C275 213.439 213.439 275 137.5 275C61.5608 275 0 213.439 0 137.5C7.44859e-05 61.5609 61.5609 7.45053e-05 137.5 0ZM136.923 102.837C118.097 102.837 102.836 118.097 102.836 136.923C102.836 155.748 118.098 171.009 136.923 171.009C155.748 171.008 171.008 155.748 171.009 136.923C171.009 118.098 155.748 102.837 136.923 102.837Z"/>
+<path d="M274.985 139.395C274.975 140.172 274.957 140.947 274.934 141.721C274.65 150.94 273.441 160.111 271.32 169.095L170 145.173C170.612 142.71 170.957 140.142 171.001 137.5H275C275 138.132 274.994 138.763 274.985 139.395Z"/>
+<path d="M103.646 129.507C103.117 131.894 102.836 134.376 102.836 136.923C102.836 137.116 102.84 137.308 102.843 137.5H0C1.38529e-06 136.088 0.0231456 134.68 0.0654297 133.278C0.34872 124.059 1.55871 114.889 3.67969 105.905L103.646 129.507Z"/>
+</clipPath><clipPath id="clip0_129_172">
+<rect width="275" height="275" fill="white"/>
+</clipPath>
+</defs>
 </svg>
