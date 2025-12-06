@@ -1,8 +1,10 @@
 from pathlib import Path
-from PyQt6.QtWidgets import QLabel
+from PyQt6.QtWidgets import QLabel, QWidget
 from PyQt6.QtCore import QSize
 
+
 from app.utils.helpers import load_svg
+from .infobox_content import InfoBoxContentWidget
 
 class MacroPaneWidget(QLabel):
     def __init__(self, parent, scalefactor):
@@ -15,7 +17,7 @@ class MacroPaneWidget(QLabel):
         svg_path = str(Path(__file__).parent.parent.parent / "assets" / "svg" / "MacroPane.svg")
         load_svg(svg_path, self, QSize(int(width), int(height)))
 
-class InfoBoxWidget(QLabel):
+class InfoBoxWidget(QWidget):
     def __init__(self, parent, scalefactor):
         super().__init__(parent)
         width = 460 * scalefactor
@@ -23,8 +25,15 @@ class InfoBoxWidget(QLabel):
         x = 524 * scalefactor
         y = 85 * scalefactor
         self.setGeometry(int(x), int(y), int(width), int(height))
+
+        self.bg_label = QLabel(self)
+        self.bg_label.setGeometry(0, 0, int(width), int(height))
         svg_path = str(Path(__file__).parent.parent.parent / "assets" / "svg" / "InfoBox.svg")
-        load_svg(svg_path, self, QSize(int(width), int(height)))
+        load_svg(svg_path, self.bg_label, QSize(int(width), int(height)))
+        
+        self.content = InfoBoxContentWidget(self, scalefactor)
+        self.content.setGeometry(0, 0, int(width), int(height))
+
 
 class TextBoxWidget(QLabel):
     def __init__(self, parent, scalefactor):
