@@ -1700,5 +1700,7 @@
   ],
   "version": 1,
   "normalized": true,
-  "createdAt": "2025-12-07T10:54:53Z"
+  "createdAt": "2025-12-07T10:54:53Z",
+  "status": "on",
+  "program": "global"
 }

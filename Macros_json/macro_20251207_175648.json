@@ -2688,5 +2688,7 @@
   ],
   "version": 1,
   "normalized": true,
-  "createdAt": "2025-12-07T12:27:20Z"
+  "createdAt": "2025-12-07T12:27:20Z",
+  "status": "off",
+  "app": "global"
 }

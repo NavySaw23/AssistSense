@@ -21,6 +21,23 @@ def load_svg(svg_path, label, size):
         label.setMask(pixmap.mask())
     label.setContentsMargins(0, 0, 0, 0)
 
+def load_svg_from_string(svg_content, label, size):
+    renderer = QSvgRenderer(QByteArray(svg_content.encode('utf-8')))
+    if not renderer.isValid():
+        print(f"Error: Could not load SVG from string.")
+        return
+
+    pixmap = QPixmap(size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
+    painter.end()
+    label.setPixmap(pixmap)
+    if pixmap.hasAlphaChannel():
+        label.setMask(pixmap.mask())
+    label.setContentsMargins(0, 0, 0, 0)
+
+
 def load_svg_with_shadow(svg_path, label, size):
     with open(svg_path, 'r') as f:
         svg_content = f.read()

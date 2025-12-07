@@ -40,6 +40,8 @@ class MainMenuWindow(QWidget):
         self.macropane = MacroPaneWidget(self, self.scalefactor)
         self.infobox = InfoBoxWidget(self, self.scalefactor)
 
+        self.infobox.content.application_changed.connect(self.macropane.content.update_macro_panes)
+
         self.min_button = MinimizeButton(self, self.scalefactor)
         self.cross_button = CrossButton(self, self.scalefactor)
         self.plain_button_1 = PlainButton(self, self.scalefactor, (794 * self.scalefactor, 5 * self.scalefactor))

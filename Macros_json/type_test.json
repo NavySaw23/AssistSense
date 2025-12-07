@@ -35,5 +35,7 @@
         "pressed": false
       }
     }
-  ]
+  ],
+  "status": "off",
+  "app": "global"
 }

@@ -18,6 +18,7 @@ class VoiceListener:
         self.silence_timeout = silence_timeout
         self.listening_flag = 0  # 1 = active listening, 0 = passive
         self.mode = mode
+        self.paused = False
         # When True, always stay in active listening mode (used during recording/playback)
         self.force_active_mode = False
 
@@ -25,7 +26,7 @@ class VoiceListener:
         self.recognizer.energy_threshold = 4000  # Adjust sensitivity (lower = more sensitive)
         self.recognizer.dynamic_energy_threshold = True  # Auto-adjust to environment
         self.recognizer.phrase_threshold = 0.3  # Lower = accepts shorter phrases
-        self.recognizer.non_speaking_duration = 0.3  # Shorter detection of speech end
+        self.recognizer.non_speaking_duration = 0.8  # Shorter detection of speech end
 
         # Calibrate mic (2 seconds for better noise profile)
         with self.mic as source:
@@ -42,6 +43,10 @@ class VoiceListener:
         unless force_active_mode is True (during recording/playback).
         """
         while not self.stop_flag:
+            if self.paused:
+                time.sleep(0.1)
+                continue
+
             # If force_active_mode is True, always stay active
             if self.force_active_mode:
                 if not self.active:
@@ -57,7 +62,7 @@ class VoiceListener:
         """Wait for wake word."""
         with self.mic as source:
             print("(passive) Listening for wake word...")
-            audio = self.recognizer.listen(source, phrase_time_limit=1.5)
+            audio = self.recognizer.listen(source, phrase_time_limit=2.0)
         try:
             text = ""
             if self.mode == "online":
@@ -80,7 +85,7 @@ class VoiceListener:
         while self.active and not self.stop_flag:
             with self.mic as source:
                 print("(active) Listening...")
-                audio = self.recognizer.listen(source, phrase_time_limit=1.5)
+                audio = self.recognizer.listen(source, phrase_time_limit=5.0)
 
             try:
                 text = ""
@@ -133,3 +138,13 @@ class VoiceListener:
         """Stop background loop."""
         print("Stopping listener...")
         self.stop_flag = True
+
+    def pause(self):
+        """Pause listening."""
+        print("Pausing listener...")
+        self.paused = True
+
+    def resume(self):
+        """Resume listening."""
+        print("Resuming listener...")
+        self.paused = False

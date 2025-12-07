@@ -1,14 +1,19 @@
 from PyQt6.QtWidgets import QWidget, QComboBox, QPushButton, QLabel
+from PyQt6.QtCore import pyqtSignal
+from app.controller import controller
 import pygetwindow as gw
 import sounddevice as sd
 import cv2
 
 class InfoBoxContentWidget(QWidget):
+    application_changed = pyqtSignal(str)
+
     def __init__(self, parent, scalefactor):
         super().__init__(parent)
         self.process_dropdown = QComboBox(self)
         self.process_dropdown.setGeometry(int(20 * scalefactor), int(20 * scalefactor), int(350 * scalefactor), int(30 * scalefactor))
         self.process_dropdown.setStyleSheet("font-family: montserrat; font-size: 14px; color: #FFFFFF; background: #282a36;")
+        self.process_dropdown.currentTextChanged.connect(self.on_application_changed)
 
         self.refresh_button = QPushButton("↻", self)
         self.refresh_button.setGeometry(int(380 * scalefactor), int(20 * scalefactor), int(60 * scalefactor), int(30 * scalefactor))
@@ -24,8 +29,9 @@ class InfoBoxContentWidget(QWidget):
         self.mic_dropdown.setStyleSheet("font-family: montserrat; font-size: 14px; color: #FFFFFF; background: #282a36;")
         self.populate_mics()
 
-        self.mic_on_off_button = QPushButton("Off", self)
+        self.mic_on_off_button = QPushButton("On", self)
         self.mic_on_off_button.setCheckable(True)
+        self.mic_on_off_button.setChecked(True)
         self.mic_on_off_button.setGeometry(int(290 * scalefactor), int(60 * scalefactor), int(80 * scalefactor), int(30 * scalefactor))
         self.mic_on_off_button.setStyleSheet("font-family: montserrat; font-size: 14px; color: #FFFFFF; background: #282a36;")
         self.mic_on_off_button.clicked.connect(self.toggle_mic)
@@ -47,6 +53,9 @@ class InfoBoxContentWidget(QWidget):
 
         self.populate_processes()
 
+    def on_application_changed(self, text):
+        self.application_changed.emit(text)
+
     def populate_processes(self):
         self.process_dropdown.clear()
         window_titles = []
@@ -54,6 +63,7 @@ class InfoBoxContentWidget(QWidget):
             if w.title:
                 window_titles.append(w.title)
         
+        self.process_dropdown.addItem("global")
         self.process_dropdown.addItems(sorted(list(set(window_titles))))
 
     def populate_mics(self):
@@ -75,8 +85,10 @@ class InfoBoxContentWidget(QWidget):
     def toggle_mic(self, checked):
         if checked:
             self.mic_on_off_button.setText("On")
+            controller.listener.resume()
         else:
             self.mic_on_off_button.setText("Off")
+            controller.listener.pause()
 
     def toggle_camera(self, checked):
         if checked:
