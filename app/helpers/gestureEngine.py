@@ -5,12 +5,7 @@ fingerDebug = True
 
 class GestureEngine:
     def __init__(self, camera_index=0):
-        """
-        Initializes the GestureEngine.
-
-        Args:
-            camera_index (int): The index of the camera to use.
-        """
+        
         self.cap = cv2.VideoCapture(camera_index)
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
