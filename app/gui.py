@@ -47,6 +47,7 @@ class MainMenuWindow(QWidget):
         self.plain_button_3 = PlainButton(self, self.scalefactor, (100 * self.scalefactor, 631 * self.scalefactor))
 
         self.voice_display = VoiceDisplayWidget(self, self.scalefactor, controller, self.DebugMode)
+        self.voice_display.raise_()  # Ensure it's on top of other widgets
 
         if self.DebugMode:
             self.background_label.setStyleSheet("border: 1px solid red;")

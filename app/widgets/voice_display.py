@@ -22,11 +22,13 @@ class VoiceDisplayWidget(QLabel):
 
         self.voice_timer = QTimer(self)
         self.voice_timer.timeout.connect(self._update_voice_text)
-        self.voice_timer.start(200)
+        self.voice_timer.start(100)  # Poll every 100ms for more responsiveness
 
     def _update_voice_text(self):
         if self.debug_mode:
             self.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt")
             return
+        # Always update from controller, regardless of state
         text = self.controller.get_listened_text()
         self.setText(text if text else "")
+
