@@ -18,11 +18,12 @@ matplotlib==3.9.4
 mediapipe==0.10.21
 ml_dtypes==0.5.3
 numpy==1.26.4
-opencv-contrib-python==4.11.0.86
+opencv-python-headless==4.11.0.86
 opt_einsum==3.4.0
 packaging==25.0
 pillow==11.3.0
 protobuf==4.25.8
+psutil
 PyAudio
 pycparser==2.23
 pynput==1.8.1

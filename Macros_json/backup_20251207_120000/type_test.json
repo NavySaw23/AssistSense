@@ -9,7 +9,7 @@
   "normalized": true,
   "trigger": {
     "type": "voice",
-    "value": "type test"
+    "value": "type"
   },
   "actions": [
     {
@@ -18,22 +18,7 @@
       "details": {
         "text": "abcd"
       }
-    },
-    {
-      "dt": 300,
-      "type": "keyboard_key",
-      "details": {
-        "key": "Key.enter",
-        "pressed": true
-      }
-    },
-    {
-      "dt": 50,
-      "type": "keyboard_key",
-      "details": {
-        "key": "Key.enter",
-        "pressed": false
-      }
     }
-  ]
+  ],
+  "modified": "2025-12-07T21:33:29.816948"
 }

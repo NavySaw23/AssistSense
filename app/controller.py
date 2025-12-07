@@ -14,6 +14,20 @@ import config
 # recorder/player imports
 from macros.recorder import MacroRecorderService
 from pynput import keyboard as _pynput_keyboard
+from PyQt6.QtCore import QObject, pyqtSignal
+
+# Battery monitoring
+try:
+    import psutil
+    BATTERY_AVAILABLE = True
+except ImportError:
+    print("Warning: psutil not available. Battery triggers will not work.")
+    BATTERY_AVAILABLE = False
+
+
+class ControllerSignals(QObject):
+    """Signals for controller events (threading safe)."""
+    open_macro_manager = pyqtSignal()
 
 
 class Controller:
@@ -25,18 +39,83 @@ class Controller:
         self.recorder = MacroRecorderService(macro_dir='Macros_json')
         self._is_recording = False
         self._current_macro_name = None
+        
+        # macro manager window reference
+        self.macro_manager_window = None
+        
+        # Signals for thread-safe GUI operations
+        self.signals = ControllerSignals()
+        
+        # macro trigger service for executing macros
+        self.trigger_service = None
+        self._battery_monitor_thread = None
+        self._battery_monitoring = False
+        self._last_battery_level = None
 
-        # start global hotkey for toggling recording: Ctrl+Shift+0
+        # start global hotkey for toggling recording: Ctrl+Shift+0 and opening macro manager: Ctrl+'
         try:
             self.hotkeys = _pynput_keyboard.GlobalHotKeys({
-                '<ctrl>+<shift>+0': self.toggle_recording
+                '<ctrl>+<shift>+0': self.toggle_recording,
+                '<ctrl>+\'': self.open_macro_manager
             })
             # run hotkey listener in a background thread
             self._hotkey_thread = threading.Thread(target=self.hotkeys.start, daemon=True)
             self._hotkey_thread.start()
             print("Global hotkey for recording (Ctrl+Shift+0) registered.")
+            print("Global hotkey for macro manager (Ctrl+') registered.")
         except Exception as e:
             print(f"Failed to register global hotkey: {e}")
+    
+    def initialize_triggers(self, player_service):
+        """Initialize macro trigger service after player service is created."""
+        try:
+            from macros.trigger import MacroTriggerService
+            self.trigger_service = MacroTriggerService(player_service, macro_dir='Macros_json')
+            print("✓ MacroTriggerService initialized")
+            # Start battery monitoring if available
+            if BATTERY_AVAILABLE:
+                self._start_battery_monitoring()
+        except Exception as e:
+            print(f"Error initializing trigger service: {e}")
+    
+    def _start_battery_monitoring(self):
+        """Start a background thread to monitor battery level and check triggers."""
+        if self._battery_monitor_thread is not None and self._battery_monitor_thread.is_alive():
+            return  # Already running
+        
+        self._battery_monitoring = True
+        self._battery_monitor_thread = threading.Thread(target=self._battery_monitor_loop, daemon=True)
+        self._battery_monitor_thread.start()
+        print("Battery monitoring started")
+    
+    def _battery_monitor_loop(self):
+        """Continuously monitor battery level and check triggers (runs in background thread)."""
+        while self._battery_monitoring:
+            try:
+                if BATTERY_AVAILABLE and self.trigger_service:
+                    battery = psutil.sensors_battery()
+                    if battery is not None:
+                        current_level = int(battery.percent)
+                        
+                        # Only check triggers if battery level changed
+                        if current_level != self._last_battery_level:
+                            self._last_battery_level = current_level
+                            print(f"Battery level: {current_level}%")
+                            # Check if any battery triggers match
+                            self.trigger_service.check_battery_trigger(current_level)
+                
+                # Check battery every 30 seconds
+                time.sleep(30)
+            
+            except Exception as e:
+                print(f"Error in battery monitor loop: {e}")
+                time.sleep(30)
+    
+    def stop_battery_monitoring(self):
+        """Stop the battery monitoring thread."""
+        self._battery_monitoring = False
+        if self._battery_monitor_thread is not None:
+            self._battery_monitor_thread.join(timeout=2)
 
     def is_listening(self):
         return self.listener.is_listening()
@@ -46,6 +125,7 @@ class Controller:
 
     def stop(self):
         self.listener.stop()
+        self.stop_battery_monitoring()
         try:
             if hasattr(self, 'hotkeys') and self.hotkeys:
                 self.hotkeys.stop()
@@ -94,6 +174,28 @@ class Controller:
             # Return the macro name so caller can show trigger dialog
             return self._current_macro_name
         return None
+    
+    def open_macro_manager(self):
+        """Emit signal to open the macro manager GUI window (thread-safe)."""
+        # Emit the signal which will be handled in the main thread
+        self.signals.open_macro_manager.emit()
+    
+    def _create_macro_manager_window(self):
+        """Create macro manager window in the main thread."""
+        # If window already exists, bring it to front
+        if self.macro_manager_window is not None:
+            self.macro_manager_window.raise_()
+            self.macro_manager_window.activateWindow()
+            return
+        
+        # Create new window
+        try:
+            from app.macro_manager_gui import MacroManagerWindow
+            self.macro_manager_window = MacroManagerWindow()
+            self.macro_manager_window.show()
+            print("Macro manager window opened")
+        except Exception as e:
+            print(f"Error opening macro manager: {e}")
 
 
 # Create a single Controller instance

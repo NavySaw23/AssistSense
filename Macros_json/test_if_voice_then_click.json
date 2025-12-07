@@ -1,0 +1,19 @@
+{
+  "name": "test_if_voice_then_click",
+  "created": "2025-12-07T12:00:00",
+  "loop": false,
+  "trigger": {
+    "type": "voice",
+    "value": "start show"
+  },
+  "condition_blocks": [
+    {
+      "if": { "type": "voice_match", "value": "start show" },
+      "then": [
+        { "type": "mouse_move", "x": 400, "y": 300 },
+        { "type": "mouse_click", "button": "left" },
+        { "type": "keyboard_text", "text": "Started" }
+      ]
+    }
+  ]
+}

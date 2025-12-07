@@ -19,26 +19,6 @@
         "xNorm": 0.5,
         "yNorm": 0.5
       }
-    },
-    {
-      "dt": 200,
-      "type": "mouse_click",
-      "details": {
-        "button": "right",
-        "xNorm": 0.5,
-        "yNorm": 0.5,
-        "pressed": true
-      }
-    },
-    {
-      "dt": 200,
-      "type": "mouse_click",
-      "details": {
-        "button": "right",
-        "xNorm": 0.5,
-        "yNorm": 0.5,
-        "pressed": false
-      }
     }
   ]
 }

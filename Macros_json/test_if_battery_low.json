@@ -1,0 +1,32 @@
+{
+  "name": "test_if_battery_low",
+  "created": "2025-12-07T12:00:00",
+  "loop": false,
+  "condition_blocks": [
+    {
+      "if": {
+        "type": "system",
+        "name": "battery",
+        "op": "<",
+        "value": 81
+      },
+      "then": [
+        {
+          "type": "notification",
+          "message": "Battery low - test"
+        },
+        {
+          "type": "sound",
+          "path": "C:/Users/bhati/Downloads/ding-editing-sfx-414336.mp3",
+          "repeat": 1
+        }
+      ]
+    }
+  ],
+  "else_actions": [],
+  "modified": "2025-12-08T01:46:31.107336",
+  "trigger": {
+    "type": "voice",
+    "value": ""
+  }
+}

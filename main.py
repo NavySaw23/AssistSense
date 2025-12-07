@@ -59,10 +59,16 @@ if __name__ == '__main__':
     voice_listener = controller.listener
     player_service = MacroPlayerService(macro_dir="Macros_json")
     trigger_service = MacroTriggerService(player=player_service, macro_dir="Macros_json")
+    
+    # Initialize controller's trigger service for battery monitoring and other triggers
+    controller.initialize_triggers(player_service)
 
     # Create the main window first so dialogs have a parent
     window = MainMenuWindow(scalefactor=APP_SCALEFACTOR, DebugMode=DEBUG_MODE)
     window.show()
+
+    # Connect macro manager signal to create window in main thread
+    controller.signals.open_macro_manager.connect(controller._create_macro_manager_window)
 
     # 2. Set up and start the background voice worker
     voice_worker = VoiceCommandWorker(listener=voice_listener)
@@ -116,4 +122,5 @@ if __name__ == '__main__':
     # 3. Ensure background threads are stopped when the app closes
     exit_code = app.exec()
     voice_worker.stop()
+    controller.stop()
     sys.exit(exit_code)
