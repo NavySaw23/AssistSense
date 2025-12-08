@@ -1,0 +1,104 @@
+{
+  "name": "macro_20251208_052005",
+  "screen": {
+    "width": 1920,
+    "height": 1200
+  },
+  "trigger": {
+    "type": "voice",
+    "value": "youtube"
+  },
+  "actions": [
+    {
+      "dt": 1218,
+      "type": "keyboard_key",
+      "details": {
+        "key": "Key.cmd",
+        "pressed": true
+      }
+    },
+    {
+      "dt": 99,
+      "type": "keyboard_key",
+      "details": {
+        "key": "Key.cmd",
+        "pressed": false
+      }
+    },
+    {
+      "dt": 504,
+      "type": "keyboard_key",
+      "details": {
+        "key": "'o'",
+        "pressed": true
+      }
+    },
+    {
+      "dt": 56,
+      "type": "keyboard_key",
+      "details": {
+        "key": "'o'",
+        "pressed": false
+      }
+    },
+    {
+      "dt": 643,
+      "type": "keyboard_key",
+      "details": {
+        "key": "Key.enter",
+        "pressed": true
+      }
+    },
+    {
+      "dt": 44,
+      "type": "keyboard_key",
+      "details": {
+        "key": "Key.enter",
+        "pressed": false
+      }
+    },
+    {
+      "dt": 2199,
+      "type": "keyboard_key",
+      "details": {
+        "key": "'y'",
+        "pressed": true
+      }
+    },
+    {
+      "dt": 75,
+      "type": "keyboard_key",
+      "details": {
+        "key": "'y'",
+        "pressed": false
+      }
+    },
+    {
+      "dt": 425,
+      "type": "keyboard_key",
+      "details": {
+        "key": "Key.enter",
+        "pressed": true
+      }
+    },
+    {
+      "dt": 44,
+      "type": "keyboard_key",
+      "details": {
+        "key": "Key.enter",
+        "pressed": false
+      }
+    },
+    {
+      "dt": 3743,
+      "type": "keyboard_key",
+      "details": {
+        "key": "Key.esc",
+        "pressed": true
+      }
+    }
+  ],
+  "version": 1,
+  "normalized": true,
+  "createdAt": "2025-12-07T23:50:35Z"
+}

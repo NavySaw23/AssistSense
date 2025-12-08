@@ -1,0 +1,37 @@
+{
+  "name": "test_if_voice_then_click",
+  "created": "2025-12-07T12:00:00",
+  "loop": false,
+  "trigger": {
+    "type": "voice",
+    "value": "start"
+  },
+  "condition_blocks": [
+    {
+      "if": {
+        "type": "custom",
+        "expr": ""
+      },
+      "then": [
+        {
+          "type": "mouse_move",
+          "x": 400,
+          "y": 300
+        },
+        {
+          "type": "mouse_click",
+          "button": "left"
+        },
+        {
+          "type": "keyboard_text",
+          "text": "Started"
+        }
+      ]
+    }
+  ],
+  "else_actions": [],
+  "loop_interval": 1000,
+  "status": "on",
+  "app": "global",
+  "modified": "2025-12-08T03:45:16.785968"
+}

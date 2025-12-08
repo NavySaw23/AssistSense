@@ -1,6 +1,7 @@
 import json
 import time
 import os
+import threading
 from pynput import mouse, keyboard
 from screeninfo import get_monitors
 
@@ -19,6 +20,7 @@ class MacroRecorderService(IMacroRecorder):
         self.trigger_info = None
         self.mouse_listener = None
         self.keyboard_listener = None
+        self.recorder_thread = None
         os.makedirs(self.macro_dir, exist_ok=True)
 
     def start_recording(self, name: str, trigger_info: dict) -> None:
@@ -33,10 +35,16 @@ class MacroRecorderService(IMacroRecorder):
         self.last_event_time = time.time()
         self.is_recording = True
 
-        self.mouse_listener = mouse.Listener(on_move=self._on_move, on_click=self._on_click, on_scroll=self._on_scroll)
-        self.keyboard_listener = keyboard.Listener(on_press=self._on_press, on_release=self._on_release)
-        self.mouse_listener.start()
-        self.keyboard_listener.start()
+        def run_listeners():
+            self.mouse_listener = mouse.Listener(on_move=self._on_move, on_click=self._on_click, on_scroll=self._on_scroll)
+            self.keyboard_listener = keyboard.Listener(on_press=self._on_press, on_release=self._on_release)
+            self.mouse_listener.start()
+            self.keyboard_listener.start()
+            self.mouse_listener.join()
+            self.keyboard_listener.join()
+
+        self.recorder_thread = threading.Thread(target=run_listeners, daemon=True)
+        self.recorder_thread.start()
 
     def _add_action(self, action_type: str, details: dict):
         if not self.is_recording:

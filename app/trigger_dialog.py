@@ -1,15 +1,14 @@
 """
 Post-recording trigger configuration dialog.
-After a macro is recorded, this dialog lets the user choose:
-- Voice command (e.g., "youtube mode")
-- Keyboard shortcut (e.g., "Ctrl+Alt+Y")
+This dialog reuses the TriggerEditor from the main macro manager GUI
+to provide a consistent and up-to-date UI for all trigger types.
 """
-
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QComboBox, QPushButton, QMessageBox
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QMessageBox, QFrame
 )
-from PyQt6.QtCore import Qt
+# Reuse the comprehensive TriggerEditor from the main GUI
+from app.macro_manager_gui import TriggerEditor
 
 
 class TriggerConfigDialog(QDialog):
@@ -18,39 +17,30 @@ class TriggerConfigDialog(QDialog):
     def __init__(self, macro_name: str, parent=None):
         super().__init__(parent)
         self.macro_name = macro_name
-        self.trigger_type = None
-        self.trigger_value = None
+        self.trigger_info = None
         self.init_ui()
 
     def init_ui(self):
         """Initialize UI components."""
         self.setWindowTitle("Configure Macro Trigger")
-        self.setGeometry(100, 100, 400, 200)
+        self.setMinimumSize(450, 350)
 
         layout = QVBoxLayout()
 
         # Title
-        title = QLabel(f"Configure trigger for: {self.macro_name}")
+        title = QLabel(f"Configure trigger for: <b>{self.macro_name}</b>")
+        title.setStyleSheet("font-size: 14px;")
         layout.addWidget(title)
 
-        # Trigger type selection
-        type_layout = QHBoxLayout()
-        type_label = QLabel("Trigger Type:")
-        self.type_combo = QComboBox()
-        self.type_combo.addItems(["voice", "keyboard_shortcut", "gesture"])
-        self.type_combo.currentTextChanged.connect(self.on_type_changed)
-        type_layout.addWidget(type_label)
-        type_layout.addWidget(self.type_combo)
-        layout.addLayout(type_layout)
+        # Separator
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        layout.addWidget(line)
 
-        # Trigger value input
-        value_layout = QHBoxLayout()
-        self.value_label = QLabel("Voice Command:")
-        self.value_input = QLineEdit()
-        self.value_input.setPlaceholderText("e.g., youtube mode")
-        value_layout.addWidget(self.value_label)
-        value_layout.addWidget(self.value_input)
-        layout.addLayout(value_layout)
+        # Embed the TriggerEditor
+        self.trigger_editor = TriggerEditor()
+        layout.addWidget(self.trigger_editor)
 
         # Buttons
         button_layout = QHBoxLayout()
@@ -58,40 +48,24 @@ class TriggerConfigDialog(QDialog):
         save_btn.clicked.connect(self.save_trigger)
         cancel_btn = QPushButton("Cancel")
         cancel_btn.clicked.connect(self.reject)
+        button_layout.addStretch()
         button_layout.addWidget(save_btn)
         button_layout.addWidget(cancel_btn)
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
 
-    def on_type_changed(self, new_type: str):
-        """Update label and placeholder when trigger type changes."""
-        if new_type == "voice":
-            self.value_label.setText("Voice Command:")
-            self.value_input.setPlaceholderText("e.g., youtube mode")
-        elif new_type == "keyboard_shortcut":
-            self.value_label.setText("Keyboard Shortcut:")
-            self.value_input.setPlaceholderText("e.g., Ctrl+Alt+Y")
-        elif new_type == "gesture":
-            self.value_label.setText("Gesture:")
-            self.value_input.setPlaceholderText("e.g., swipe_up")
-
     def save_trigger(self):
-        """Validate and save trigger configuration."""
-        trigger_type = self.type_combo.currentText()
-        trigger_value = self.value_input.text().strip()
-
-        if not trigger_value:
-            QMessageBox.warning(self, "Input Error", "Please enter a trigger value.")
+        """Validate and save trigger configuration by getting data from the editor."""
+        self.trigger_info = self.trigger_editor.get_trigger_data()
+        
+        # Basic validation
+        if not self.trigger_info.get("value"):
+            QMessageBox.warning(self, "Input Error", "Please provide a value for the trigger.")
             return
 
-        self.trigger_type = trigger_type
-        self.trigger_value = trigger_value
         self.accept()
 
     def get_trigger_info(self) -> dict:
-        """Return the configured trigger info."""
-        return {
-            "type": self.trigger_type,
-            "value": self.trigger_value
-        }
+        """Return the configured trigger info from the editor."""
+        return self.trigger_info

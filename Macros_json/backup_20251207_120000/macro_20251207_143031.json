@@ -1,0 +1,15 @@
+{
+  "name": "macro_20251207_143031",
+  "screen": {
+    "width": 1920,
+    "height": 1200
+  },
+  "trigger": {
+    "type": "hotkey",
+    "value": "ctrl+shift+0"
+  },
+  "actions": [],
+  "version": 1,
+  "normalized": true,
+  "createdAt": "2025-12-07T09:00:31Z"
+}

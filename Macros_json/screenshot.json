@@ -1,0 +1,29 @@
+{
+  "name": "screenshot",
+  "created": "2025-12-08T05:28:59.572674",
+  "loop": false,
+  "loop_interval": 1000,
+  "status": "on",
+  "app": "global",
+  "trigger": {
+    "type": "voice",
+    "value": "screenshot"
+  },
+  "actions": [
+    {
+      "type": "keyboard_key",
+      "key": "ctrl",
+      "dt": 100
+    },
+    {
+      "type": "keyboard_key",
+      "key": "shift",
+      "dt": 100
+    },
+    {
+      "type": "keyboard_key",
+      "key": "o",
+      "dt": 100
+    }
+  ]
+}

@@ -19,16 +19,6 @@
         "xNorm": 0.5,
         "yNorm": 0.5
       }
-    },
-    {
-      "dt": 500,
-      "type": "mouse_click",
-      "details": {
-        "button": "right",
-        "xNorm": 0.5,
-        "yNorm": 0.5,
-        "pressed": true
-      }
     }
   ]
 }
