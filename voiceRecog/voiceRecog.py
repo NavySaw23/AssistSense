@@ -25,7 +25,7 @@ class VoiceListener:
         self.recognizer.energy_threshold = 4000  # Adjust sensitivity (lower = more sensitive)
         self.recognizer.dynamic_energy_threshold = True  # Auto-adjust to environment
         self.recognizer.phrase_threshold = 0.3  # Lower = accepts shorter phrases
-        self.recognizer.non_speaking_duration = 0.3  # Shorter detection of speech end
+        self.recognizer.non_speaking_duration = 0.8  # Shorter detection of speech end
 
         # Calibrate mic (2 seconds for better noise profile)
         with self.mic as source:
@@ -57,7 +57,7 @@ class VoiceListener:
         """Wait for wake word."""
         with self.mic as source:
             print("(passive) Listening for wake word...")
-            audio = self.recognizer.listen(source, phrase_time_limit=1.5)
+            audio = self.recognizer.listen(source, phrase_time_limit=3)
         try:
             text = ""
             if self.mode == "online":
@@ -80,7 +80,7 @@ class VoiceListener:
         while self.active and not self.stop_flag:
             with self.mic as source:
                 print("(active) Listening...")
-                audio = self.recognizer.listen(source, phrase_time_limit=1.5)
+                audio = self.recognizer.listen(source, phrase_time_limit=5)
 
             try:
                 text = ""

@@ -13,7 +13,7 @@ class MacroJsonManager:
         self.macro_dir = macro_dir
         os.makedirs(macro_dir, exist_ok=True)
     
-    def save_macro(self, macro_name, trigger=None, actions=None, loop=False, loop_interval=1000, condition_blocks=None, else_actions=None):
+    def save_macro(self, macro_name, trigger=None, actions=None, loop=False, loop_interval=1000, condition_blocks=None, else_actions=None, status="on", app="global"):
         """
         Save a macro to JSON file.
         
@@ -23,12 +23,18 @@ class MacroJsonManager:
             actions: List of action dicts
             loop: Whether macro loops
             loop_interval: Interval between loops in ms
+            condition_blocks: Structured conditional blocks
+            else_actions: Fallback actions for structured blocks
+            status: "on" or "off" - whether macro is active
+            app: "global" or specific app name for trigger scope
         """
         macro_data = {
             "name": macro_name,
             "created": datetime.now().isoformat(),
             "loop": loop,
-            "loop_interval": loop_interval
+            "loop_interval": loop_interval,
+            "status": status,
+            "app": app
         }
 
         # Backwards-compatible: either store simple trigger/actions or structured condition blocks
@@ -61,7 +67,7 @@ class MacroJsonManager:
         
         return macro_data
     
-    def update_macro(self, macro_name, trigger=None, actions=None, loop=None, loop_interval=None, condition_blocks=None, else_actions=None):
+    def update_macro(self, macro_name, trigger=None, actions=None, loop=None, loop_interval=None, condition_blocks=None, else_actions=None, status=None, app=None):
         """
         Update an existing macro.
         
@@ -71,6 +77,10 @@ class MacroJsonManager:
             actions: New actions list (optional)
             loop: New loop setting (optional)
             loop_interval: New loop interval (optional)
+            condition_blocks: Structured conditional blocks (optional)
+            else_actions: Fallback actions (optional)
+            status: "on" or "off" (optional)
+            app: "global" or app name (optional)
         """
         macro_data = self.load_macro(macro_name)
         
@@ -88,10 +98,15 @@ class MacroJsonManager:
                 macro_data['trigger'] = trigger
             if actions is not None:
                 macro_data['actions'] = actions
+        
         if loop is not None:
             macro_data['loop'] = loop
         if loop_interval is not None:
             macro_data['loop_interval'] = loop_interval
+        if status is not None:
+            macro_data['status'] = status
+        if app is not None:
+            macro_data['app'] = app
         
         macro_data['modified'] = datetime.now().isoformat()
         

@@ -3,6 +3,7 @@ Macro Manager GUI for editing, creating, and managing action/trigger pairs.
 """
 import json
 import os
+import datetime
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem,
     QPushButton, QLabel, QScrollArea, QFrame, QGroupBox, QComboBox, QSpinBox,
@@ -86,17 +87,22 @@ class TriggerEditor(QWidget):
             if w:
                 w.setParent(None)
         
-        # Add appropriate editor
+        # Add appropriate editor and ensure it's visible
+        editor_to_show = None
         if new_type == "voice":
-            self.editor_layout.addWidget(self.voice_editor)
+            editor_to_show = self.voice_editor
         elif new_type == "keyboard_shortcut":
-            self.editor_layout.addWidget(self.keyboard_editor)
+            editor_to_show = self.keyboard_editor
         elif new_type == "battery":
-            self.editor_layout.addWidget(self.battery_editor)
+            editor_to_show = self.battery_editor
         elif new_type == "gaze":
-            self.editor_layout.addWidget(self.gaze_editor)
+            editor_to_show = self.gaze_editor
         elif new_type == "gesture":
-            self.editor_layout.addWidget(self.gesture_editor)
+            editor_to_show = self.gesture_editor
+        
+        if editor_to_show:
+            editor_to_show.setVisible(True)
+            self.editor_layout.addWidget(editor_to_show)
     
     def get_trigger_data(self):
         """Return the current trigger configuration."""
@@ -234,7 +240,6 @@ class GazeEditor(QWidget):
         layout.addLayout(gaze_layout)
         
         self.setLayout(layout)
-        self.setVisible(False)  # Hidden by default
     
     def set_value(self, value):
         """Set gaze value from trigger data."""
@@ -314,7 +319,6 @@ class GestureEditor(QWidget):
         layout.addWidget(self.array_display)
         
         self.setLayout(layout)
-        self.setVisible(False)  # Hidden by default
     
     def cycle_finger(self, index):
         """Cycle finger state: 0 → 1 → -1 → 0"""
@@ -609,7 +613,7 @@ class ConditionalsEditor(QWidget):
             elif selected == 'custom':
                 block_data['if'] = { 'type': 'custom', 'expr': custom_input.text() }
             else:
-                block_data['if'] = 'true'
+                block_data['if'] = {'type': 'true'}
 
         # wire change events to keep model in sync
         if_combo.currentTextChanged.connect(_update_if_detail)
@@ -821,6 +825,38 @@ class MacroEditorPanel(QWidget):
         self.on_save_callback = on_save_callback
         self.init_ui()
     
+    
+    def _get_running_apps(self):
+        """Get list of running applications (Windows-specific)."""
+        apps = []
+        try:
+            # Use window titles (pygetwindow) like the main app does for a concise selector
+            import pygetwindow as gw
+            for w in gw.getAllWindows():
+                try:
+                    title = w.title
+                    if title and title.strip() and title not in apps:
+                        apps.append(title.strip())
+                except Exception:
+                    pass
+            # Deduplicate and limit to a reasonable number
+            unique = list(dict.fromkeys(apps))
+            return unique[:30]
+        except Exception:
+            # Fallback to psutil process names if pygetwindow not available
+            try:
+                import psutil
+                for proc in psutil.process_iter(['name']):
+                    try:
+                        app_name = proc.info['name']
+                        if app_name and app_name not in apps and not app_name.startswith('svchost'):
+                            apps.append(app_name.replace('.exe', ''))
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        pass
+                return sorted(list(set(apps)))[:50]
+            except Exception:
+                return []
+    
     def _extract_actions(self):
         """Extract actions from macro_data, supporting both flat and structured formats."""
         # Check for structured condition_blocks first
@@ -846,6 +882,48 @@ class MacroEditorPanel(QWidget):
         name_layout.addWidget(name_label)
         name_layout.addWidget(self.name_input)
         layout.addLayout(name_layout)
+        
+        # Status and App selection (top row)
+        settings_layout = QHBoxLayout()
+        
+        # Status
+        status_label = QLabel("Status:")
+        self.status_combo = QComboBox()
+        self.status_combo.addItems(["on", "off"])
+        self.status_combo.setCurrentText(self.macro_data.get("status", "on"))
+        settings_layout.addWidget(status_label)
+        settings_layout.addWidget(self.status_combo)
+        
+        settings_layout.addSpacing(20)
+        
+        # App selector
+        app_label = QLabel("App:")
+        self.app_combo = QComboBox()
+        self.app_combo.addItems(["global"] + self._get_running_apps())
+        app_value = self.macro_data.get("app", "global")
+        idx = self.app_combo.findText(app_value)
+        if idx >= 0:
+            self.app_combo.setCurrentIndex(idx)
+        settings_layout.addWidget(app_label)
+        settings_layout.addWidget(self.app_combo)
+        settings_layout.addStretch()
+        layout.addLayout(settings_layout)
+        
+        # Loop settings
+        loop_layout = QHBoxLayout()
+        self.loop_checkbox = QCheckBox("Loop Macro")
+        self.loop_checkbox.setChecked(self.macro_data.get("loop", False))
+        loop_layout.addWidget(self.loop_checkbox)
+        
+        loop_interval_label = QLabel("Loop Interval (ms):")
+        self.loop_interval_spin = QSpinBox()
+        self.loop_interval_spin.setMinimum(100)
+        self.loop_interval_spin.setMaximum(60000)
+        self.loop_interval_spin.setValue(self.macro_data.get("loop_interval", 1000))
+        loop_layout.addWidget(loop_interval_label)
+        loop_layout.addWidget(self.loop_interval_spin)
+        loop_layout.addStretch()
+        layout.addLayout(loop_layout)
         
         # Tabs for trigger, actions, and conditionals
         tabs = QTabWidget()
@@ -878,33 +956,115 @@ class MacroEditorPanel(QWidget):
         self.setLayout(layout)
     
     def save_macro(self):
-        """Save macro to JSON."""
+        """Save macro to JSON with all fields."""
         from macros.macro_json_manager import MacroJsonManager
+        import json
         
         macro_name = self.name_input.text()
         manager = MacroJsonManager()
         
         try:
-            # Prefer structured condition blocks saved via the merged Actions UI
+            # Gather all data from UI
+            trigger_data = self.trigger_editor.get_trigger_data()
             condition_blocks = self.conditionals_editor.get_condition_blocks()
-            if condition_blocks:
-                manager.update_macro(
-                    macro_name,
-                    trigger=self.trigger_editor.get_trigger_data(),
-                    condition_blocks=condition_blocks
-                )
-            else:
-                # Fallback: keep existing flat actions if present
-                actions = self.macro_data.get('actions', [])
-                manager.update_macro(
-                    macro_name,
-                    trigger=self.trigger_editor.get_trigger_data(),
-                    actions=actions
-                )
+            else_actions = self.macro_data.get('else_actions', [])
+            loop_enabled = self.loop_checkbox.isChecked()
+            loop_interval = self.loop_interval_spin.value()
+            status = self.status_combo.currentText()
+            app = self.app_combo.currentText()
+            
+            print(f"\n{'='*60}")
+            print(f"[GUI SAVE] Starting save for macro: {macro_name}")
+            print(f"[GUI SAVE] Status: {status}")
+            print(f"[GUI SAVE] App: {app}")
+            print(f"[GUI SAVE] Loop: {loop_enabled} (interval: {loop_interval}ms)")
+            print(f"[GUI SAVE] Trigger: {json.dumps(trigger_data)}")
+            print(f"[GUI SAVE] Has {len(condition_blocks)} condition block(s)")
+            print(f"{'='*60}\n")
+            
+            # Load existing macro data to preserve fields not being edited
+            existing = manager.load_macro(macro_name)
+            
+            # Update with all new values
+            existing['trigger'] = trigger_data
+            existing['condition_blocks'] = condition_blocks if condition_blocks else existing.get('condition_blocks', [])
+            existing['else_actions'] = else_actions
+            existing['loop'] = loop_enabled
+            existing['loop_interval'] = loop_interval
+            existing['status'] = status
+            existing['app'] = app
+            existing['modified'] = datetime.datetime.now().isoformat()
+            
+            # Write directly to file (bypass update_macro to have full control)
+            filepath = os.path.join(manager.macro_dir, f"{macro_name}.json")
+            with open(filepath, 'w') as f:
+                json.dump(existing, f, indent=2)
+            
+            print(f"[GUI SAVE] Successfully wrote to: {filepath}")
+            print(f"[GUI SAVE] File size: {os.path.getsize(filepath)} bytes")
+            print(f"[GUI SAVE] Modified timestamp: {os.path.getmtime(filepath)}")
+            
+            # Verify by reading back
+            with open(filepath, 'r') as f:
+                verify = json.load(f)
+            print(f"[GUI SAVE] Verification: trigger.value = {verify.get('trigger', {}).get('value')}")
+            print(f"[GUI SAVE] Verification: status = {verify.get('status')}")
+            print(f"[GUI SAVE] Verification: app = {verify.get('app')}")
+            print(f"[GUI SAVE] Save complete!\n")
+            # Reload the saved file into the editor so the UI reflects on-disk state
+            try:
+                loaded = manager.load_macro(macro_name)
+                self.macro_data = loaded
+                # Update status and app
+                try:
+                    self.status_combo.setCurrentText(loaded.get('status', 'on'))
+                except Exception:
+                    pass
+                app_val = loaded.get('app', 'global')
+                try:
+                    if self.app_combo.findText(app_val) == -1:
+                        self.app_combo.addItem(app_val)
+                    self.app_combo.setCurrentText(app_val)
+                except Exception:
+                    pass
+
+                # Update loop settings
+                try:
+                    self.loop_checkbox.setChecked(bool(loaded.get('loop', False)))
+                    self.loop_interval_spin.setValue(int(loaded.get('loop_interval', 1000)))
+                except Exception:
+                    pass
+
+                # Update trigger editor
+                try:
+                    trig = loaded.get('trigger', {}) or {}
+                    ttype = trig.get('type', 'voice')
+                    self.trigger_editor.trigger_type_combo.setCurrentText(ttype)
+                    # load value into the specific editor
+                    self.trigger_editor._load_trigger_data(ttype)
+                    self.trigger_editor.on_trigger_type_changed(ttype)
+                except Exception:
+                    pass
+
+                # Update conditionals editor
+                try:
+                    self.conditionals_editor.condition_blocks = loaded.get('condition_blocks', []) or []
+                    self.conditionals_editor.rebuild_blocks()
+                except Exception:
+                    pass
+
+                print("[GUI SAVE] UI reloaded from disk after save")
+            except Exception as e:
+                print(f"[GUI SAVE] Failed to reload UI from disk: {e}")
+
             QMessageBox.information(self, "Success", f"Macro '{macro_name}' saved successfully!")
             if self.on_save_callback:
                 self.on_save_callback()
         except Exception as e:
+            print(f"\n[GUI SAVE ERROR] {str(e)}")
+            import traceback
+            traceback.print_exc()
+            print()
             QMessageBox.critical(self, "Error", f"Failed to save macro: {str(e)}")
     
     def delete_macro(self):
