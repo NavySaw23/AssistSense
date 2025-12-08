@@ -125,6 +125,8 @@ class GazeEngine:
                 continue
             
             self._update_gaze_status(frame)
+            # Print gazeStatus
+            print(f"Gaze Status: {self.gazeStatus}")
     
     def start(self):
         """
@@ -147,3 +149,26 @@ class GazeEngine:
         if self.video_capture.isOpened():
             self.video_capture.release()
         self.face_mesh.close()
+
+def main():
+    gaze_engine = GazeEngine()
+    gaze_engine.start()
+
+    print("GazeEngine started. Press 'q' to quit.")
+
+    while True:
+        # The gaze status is updated and printed in the background thread.
+        # Here we just keep the main thread alive to allow the background thread to run
+        # and to handle keyboard input for quitting.
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        # Check if the engine is still running (e.g., if camera disconnected)
+        if not gaze_engine._running:
+            break
+        time.sleep(0.1) # Reduce CPU usage
+
+    gaze_engine.stop()
+    print("GazeEngine stopped.")
+
+if __name__ == "__main__":
+    main()

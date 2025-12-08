@@ -4,7 +4,7 @@ import mediapipe as mp
 fingerDebug = True
 
 class GestureEngine:
-    def __init__(self, camera_index=0):
+    def __init__(self, camera_index=1):
         
         self.cap = cv2.VideoCapture(camera_index)
         self.mp_hands = mp.solutions.hands
