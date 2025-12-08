@@ -37,7 +37,7 @@ class MainMenuWindow(QWidget):
         self.vinyl = VinylWidget(self, self.scalefactor, controller)
         self.reader = ReaderWidget(self, self.scalefactor)
         self.textbox = TextBoxWidget(self, self.scalefactor)
-        self.macropane = MacroPaneWidget(self, self.scalefactor)
+        self.macropane = MacroPaneWidget(self, self.scalefactor, controller)
         self.infobox = InfoBoxWidget(self, self.scalefactor)
 
         self.infobox.content.application_changed.connect(self.macropane.content.update_macro_panes)

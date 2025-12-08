@@ -29,7 +29,7 @@ except ImportError:
 
 class ControllerSignals(QObject):
     """Signals for controller events (threading safe)."""
-    open_macro_manager = pyqtSignal()
+    open_macro_manager = pyqtSignal(str)
     show_trigger_dialog = pyqtSignal(str)
 
 
@@ -231,10 +231,10 @@ class Controller:
             print("Recording stopped")
             return self._current_macro_name
 
-    def open_macro_manager(self):
-        self.signals.open_macro_manager.emit()
+    def open_macro_manager(self, file_path=None):
+        self.signals.open_macro_manager.emit(str(file_path or ''))
 
-    def _create_macro_manager_window(self):
+    def _create_macro_manager_window(self, file_path=None):
         if self.macro_manager_window and self.macro_manager_window.isVisible():
             self.macro_manager_window.raise_()
             self.macro_manager_window.activateWindow()
@@ -242,7 +242,8 @@ class Controller:
 
         try:
             from app.macro_manager_gui import MacroManagerWindow
-            self.macro_manager_window = MacroManagerWindow()
+            # Pass file_path, which can be None
+            self.macro_manager_window = MacroManagerWindow(file_path=file_path)
             self.macro_manager_window.show()
             print("Macro manager window opened")
         except Exception as e:

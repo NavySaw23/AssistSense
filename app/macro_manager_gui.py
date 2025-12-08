@@ -1479,16 +1479,26 @@ class ActionDialog(QDialog):
 class MacroManagerWindow(QMainWindow):
     """Main window for macro management."""
     
-    def __init__(self):
+    def __init__(self, file_path=None):
         super().__init__()
         self.macro_dir = "Macros_json"
         self.macros = {}
         self.load_macros()
         self.init_ui()
+
+        if file_path:
+            # Extract macro name from file path (e.g., "Macros_json/my_macro.json" -> "my_macro")
+            macro_name = os.path.splitext(os.path.basename(file_path))[0]
+            items = self.macros_list.findItems(macro_name, Qt.MatchFlag.MatchExactly)
+            if items:
+                # Select the item and trigger the editor to open
+                self.macros_list.setCurrentItem(items[0])
+                self.on_macro_selected(items[0])
     
     def init_ui(self):
         self.setWindowTitle("Macro Manager")
-        self.setGeometry(100, 100, 1400, 800)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.Window)
+        self.showMaximized()
         
         # Main widget and layout
         main_widget = QWidget()

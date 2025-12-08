@@ -8,9 +8,10 @@ from PyQt6.QtWidgets import QLabel, QWidget, QScrollArea, QVBoxLayout, QGraphics
 
 
 class AddMacroPane(QLabel):
-    def __init__(self, parent, scalefactor):
+    def __init__(self, parent, scalefactor, controller):
         super().__init__(parent)
         self.scalefactor = scalefactor
+        self.controller = controller
         
         width = 328 * self.scalefactor
         height = 48 * self.scalefactor
@@ -33,17 +34,18 @@ class AddMacroPane(QLabel):
         load_svg_from_string(self.svg_normal, self, self.size())
 
     def mousePressEvent(self, event):
-        print("Add new macro button clicked. Implement new window opening here.")
+        self.controller.open_macro_manager()
         super().mousePressEvent(event)
 
 
 class Macropane(QLabel):
-    def __init__(self, parent, scalefactor, name, status, file_path):
+    def __init__(self, parent, scalefactor, name, status, file_path, controller):
         super().__init__(parent)
         self.scalefactor = scalefactor
         self.name = name
         self.status = status
         self.file_path = file_path
+        self.controller = controller
         
         width = 328 * self.scalefactor
         height = 48 * self.scalefactor
@@ -89,13 +91,17 @@ class Macropane(QLabel):
                 print(f"Error updating file {self.file_path}: {e}")
 
             self.update_background()
+        else:
+            self.controller.open_macro_manager(self.file_path)
+
         super().mousePressEvent(event)
 
 
 class MacroPaneContent(QWidget):
-    def __init__(self, parent, scalefactor):
+    def __init__(self, parent, scalefactor, controller):
         super().__init__(parent)
         self.scalefactor = scalefactor
+        self.controller = controller
         self.setGeometry(0,0, int(parent.width()), int(parent.height()))
 
         self.scroll_area = QScrollArea(self)
@@ -147,7 +153,7 @@ class MacroPaneContent(QWidget):
         self.clear_layout(self.scroll_layout)
         
         # Add the "Add New Macro" button first
-        add_macro_pane = AddMacroPane(self.scroll_content, self.scalefactor)
+        add_macro_pane = AddMacroPane(self.scroll_content, self.scalefactor, self.controller)
         self.scroll_layout.addWidget(add_macro_pane)
 
         macros_dir = Path(__file__).parent.parent.parent / "Macros_json"
@@ -163,7 +169,7 @@ class MacroPaneContent(QWidget):
                         if macro_app == selected_app:
                             macro_name = data.get("name", "Unnamed Macro")
                             macro_status = data.get("status", "off")
-                            self.scroll_layout.addWidget(Macropane(self.scroll_content, self.scalefactor, macro_name, macro_status, file_path))
+                            self.scroll_layout.addWidget(Macropane(self.scroll_content, self.scalefactor, macro_name, macro_status, file_path, self.controller))
 
                     except json.JSONDecodeError:
                         print(f"Error decoding JSON from file: {file_name}")

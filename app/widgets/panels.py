@@ -9,7 +9,7 @@ from .macropane_content import MacroPaneContent
 
 
 class MacroPaneWidget(QWidget):
-    def __init__(self, parent, scalefactor):
+    def __init__(self, parent, scalefactor, controller):
         super().__init__(parent)
         width = 389 * scalefactor
         height = 541 * scalefactor
@@ -22,7 +22,7 @@ class MacroPaneWidget(QWidget):
         svg_path = str(Path(__file__).parent.parent.parent / "assets" / "svg" / "MacroPane.svg")
         load_svg(svg_path, self.bg_label, QSize(int(width), int(height)))
 
-        self.content = MacroPaneContent(self, scalefactor)
+        self.content = MacroPaneContent(self, scalefactor, controller)
 
 class InfoBoxWidget(QWidget):
     def __init__(self, parent, scalefactor):

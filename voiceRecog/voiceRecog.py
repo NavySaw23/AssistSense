@@ -11,6 +11,7 @@ class VoiceListener:
         self.mic = sr.Microphone()
         self.stop_flag = False
         self.active = False
+        self.paused = False  # Flag to pause/resume listening
         # latest_text is used for trigger consumption; latest_display_text is used by the GUI
         self.latest_text = ""
         self.latest_display_text = ""
@@ -42,6 +43,10 @@ class VoiceListener:
         unless force_active_mode is True (during recording/playback).
         """
         while not self.stop_flag:
+            if self.paused:
+                time.sleep(0.1)
+                continue
+
             # If force_active_mode is True, always stay active
             if self.force_active_mode:
                 if not self.active:
@@ -78,6 +83,8 @@ class VoiceListener:
         """Listen actively for commands until silence (unless force_active_mode is True)."""
         last_spoken_time = time.time()
         while self.active and not self.stop_flag:
+            if self.paused: # Check again in case it was paused during active listen
+                break
             with self.mic as source:
                 print("(active) Listening...")
                 audio = self.recognizer.listen(source, phrase_time_limit=5)
@@ -128,6 +135,19 @@ class VoiceListener:
     def is_listening(self):
         """Return 1 when actively listening (after wake word), else 0."""
         return self.listening_flag
+
+    def pause(self):
+        """Pause the listener."""
+        self.paused = True
+        self.listening_flag = 0
+        self.latest_text = ""
+        self.latest_display_text = ""
+        print("Voice listener paused.")
+
+    def resume(self):
+        """Resume the listener."""
+        self.paused = False
+        print("Voice listener resumed.")
 
     def stop(self):
         """Stop background loop."""
